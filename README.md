@@ -1,6 +1,6 @@
 
 
-![method]([D:\Users\14723\Desktop\论文图\method\method_1.jpg](https://drive.google.com/file/d/1aTuprhBB_7jH5_o9u2iIwtjBTDVg-gDe/view?usp=drive_link))
+![method](https://drive.google.com/file/d/1aTuprhBB_7jH5_o9u2iIwtjBTDVg-gDe/view?usp=drive_link))
 
 # Usage
 
