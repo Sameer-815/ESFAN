@@ -1,3 +1,6 @@
+
+# Framework
+
 ![framework](framework.jpg)
 
 # Usage
@@ -32,7 +35,7 @@ ESFAN/
 
 ## Pretrained weights
 
-Download the pretained weight of classification stage from
+Download the pretained weight of classification stage via Google Cloud Drive ([Link)](https://drive.google.com/file/d/1fKSFyWgJ8dZqGMFsJEiFwcCyUlbjvhrJ/view?usp=drive_link)
 
 ## Run each step:
 
