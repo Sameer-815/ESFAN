@@ -1,4 +1,4 @@
-![framework](/ESFAN/framework.jpg)
+![framework](framework.jpg)
 
 # Usage
 
