@@ -21,7 +21,7 @@ class ResBlock(nn.Module):
         self.conv_branch2b1 = nn.Conv2d(mid_channels, out_channels, 3, padding=dilation, dilation=dilation, bias=False)
 
         if not self.same_shape:
-            self.conv_branch1 = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)         #resnet中的shortcut
+            self.conv_branch1 = nn.Conv2d(in_channels, out_channels, 1, stride, bias=False)        
 
     def forward(self, x, get_x_bn_relu=False):
 
