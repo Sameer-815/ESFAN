@@ -157,7 +157,7 @@ def main():
     if args.cuda:
         args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
     args.sync_bn = args.cuda and len(args.gpu_ids) > 1
-    parent_folder_path = r"D:\Users\14723\Desktop\q"
+    parent_folder_path = r"/example/"
     trainer = Seg(args)
     trainer.seg(args.Is_GM,  parent_folder_path)
 
