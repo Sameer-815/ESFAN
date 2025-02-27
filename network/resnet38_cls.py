@@ -7,7 +7,7 @@ class Net(network.resnet38d.Net):
     def __init__(self, n_class):
         super().__init__()
 
-        self.dropout7 = torch.nn.Dropout2d(0.5)     #按0.5的概率将通道置0
+        self.dropout7 = torch.nn.Dropout2d(0.5)     
 
         self.fc8 = nn.Conv2d(4096, n_class, 1, bias=False)
         torch.nn.init.xavier_uniform_(self.fc8.weight)
