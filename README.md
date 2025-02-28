@@ -1,7 +1,7 @@
 
 # Framework
 
-![framework](framework.jpg)
+![framework](framework.png)
 
 # Usage
 
