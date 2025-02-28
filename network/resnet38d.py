@@ -113,7 +113,82 @@ class ResBlock_bot(nn.Module):
         out = self.conv(out)
         out = self.bn(out)
         return self.relu(out)
+class ISEF(nn.Module):
+    def __init__(self, in_channels, reduction=16):
+        super(ISEF, self).__init__()
 
+        self.laplacian_kernel = nn.Conv2d(in_channels, 1, kernel_size=3, padding=1, bias=False)
+        self.laplacian_kernel.weight = nn.Parameter(
+            torch.tensor([[[[0, 1, 0], [1, -4, 1], [0, 1, 0]]]], dtype=torch.float32)
+            .repeat(1, in_channels, 1, 1),
+            requires_grad=False  # 固定高频算子
+        )
+        self.edge_conv = nn.Conv2d(in_channels + 1, 1, kernel_size=3, padding=1, bias=True)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.semantic_fc = nn.Sequential(
+            nn.Linear(in_channels, in_channels // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(in_channels // reduction, in_channels, bias=False),
+            nn.Sigmoid()
+        )
+        self.spp = SpatialPyramidPooling(in_channels, in_channels)
+        self.guidance_weight = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Conv2d(in_channels, 1, kernel_size=1),
+            nn.Sigmoid()
+        )
+        self.fusion_conv = nn.Conv2d(in_channels, in_channels, kernel_size=3, padding=1, bias=False)
+
+    def forward(self, x):
+
+        edge_high_freq = self.laplacian_kernel(x)
+        edge_input = torch.cat([x, edge_high_freq], dim=1)
+        edge_attention = torch.sigmoid(self.edge_conv(edge_input))
+
+        b, c, _, _ = x.size()
+        channel_avg = self.avg_pool(x).view(b, c)
+        channel_weights = self.semantic_fc(channel_avg).view(b, c, 1, 1)
+
+
+        multi_scale = self.spp(x)
+
+        guidance = self.guidance_weight(x)  # 引导权重范围 [0,1]
+
+        edge_refined = edge_attention * guidance + edge_attention
+        semantic_refined = channel_weights * (1 - guidance) + channel_weights
+
+        fused_feature = (x * edge_refined) + (x * semantic_refined) + multi_scale
+        out = self.fusion_conv(fused_feature)
+
+        return out
+
+class SpatialPyramidPooling(nn.Module):
+    def __init__(self, in_channels, out_channels):
+        super(SpatialPyramidPooling, self).__init__()
+
+        self.pool1 = nn.AdaptiveAvgPool2d((1, 1))
+        self.pool2 = nn.AdaptiveAvgPool2d((2, 2))
+        self.pool3 = nn.AdaptiveAvgPool2d((3, 3))
+        self.pool4 = nn.AdaptiveAvgPool2d((6, 6))
+
+
+        self.conv = nn.Conv2d(in_channels * 5, out_channels, kernel_size=1, bias=False)
+        self.bn = nn.BatchNorm2d(out_channels)
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, x):
+        size = x.size()[2:]
+        p1 = F.interpolate(self.pool1(x), size, mode='bilinear', align_corners=True)
+        p2 = F.interpolate(self.pool2(x), size, mode='bilinear', align_corners=True)
+        p3 = F.interpolate(self.pool3(x), size, mode='bilinear', align_corners=True)
+        p4 = F.interpolate(self.pool4(x), size, mode='bilinear', align_corners=True)
+
+
+        out = torch.cat([x, p1, p2, p3, p4], dim=1)
+        out = self.conv(out)
+        out = self.bn(out)
+        return self.relu(out)
+        
 class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
