@@ -25,10 +25,11 @@ ESFAN/
 |          |     |/mask/
 ```
 
-## Pretrained weights
+## Pretrained weights and datasets
 
 Download the pretained weight of classification stage via Google Cloud Drive ([Link)](https://drive.google.com/file/d/1fKSFyWgJ8dZqGMFsJEiFwcCyUlbjvhrJ/view?usp=drive_link)
 
+Download the datasets via Google Cloud Drive ([Link)](https://drive.google.com/file/d/1lWAeCp6UN30VRVmqv97kA2sJ1Pp2frhC/view?usp=drive_link)([Link)](https://drive.google.com/file/d/178eSM9xs5jITt5P2kjaswDlJzwlU5gps/view?usp=drive_link)
 ## Run each step:
 
 1、Train the classification model and generate pesudo masks with the image-level label:
