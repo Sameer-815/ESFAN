@@ -139,7 +139,7 @@ class ESF(nn.Module):
 
         multi_scale = self.spp(x)
 
-        guidance = self.guidance_weight(x)  # 引导权重范围 [0,1]
+        guidance = self.guidance_weight(x)  #[0,1]
 
         edge_refined = edge_attention * guidance + edge_attention
         semantic_refined = channel_weights * (1 - guidance) + channel_weights
