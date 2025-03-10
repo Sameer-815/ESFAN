@@ -100,19 +100,6 @@ class ResBlock_bot(nn.Module):
     def __call__(self, x, get_x_bn_relu=False):
         return self.forward(x, get_x_bn_relu=get_x_bn_relu)
 
-
-    def forward(self, x):
-        size = x.size()[2:]
-        p1 = F.interpolate(self.pool1(x), size, mode='bilinear', align_corners=True)
-        p2 = F.interpolate(self.pool2(x), size, mode='bilinear', align_corners=True)
-        p3 = F.interpolate(self.pool3(x), size, mode='bilinear', align_corners=True)
-        p4 = F.interpolate(self.pool4(x), size, mode='bilinear', align_corners=True)
-
-
-        out = torch.cat([x, p1, p2, p3, p4], dim=1)
-        out = self.conv(out)
-        out = self.bn(out)
-        return self.relu(out)
 class ISEF(nn.Module):
     def __init__(self, in_channels, reduction=16):
         super(ISEF, self).__init__()
