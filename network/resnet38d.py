@@ -100,15 +100,15 @@ class ResBlock_bot(nn.Module):
     def __call__(self, x, get_x_bn_relu=False):
         return self.forward(x, get_x_bn_relu=get_x_bn_relu)
 
-class ISEF(nn.Module):
+class ESF(nn.Module):
     def __init__(self, in_channels, reduction=16):
-        super(ISEF, self).__init__()
+        super(ESF, self).__init__()
 
         self.laplacian_kernel = nn.Conv2d(in_channels, 1, kernel_size=3, padding=1, bias=False)
         self.laplacian_kernel.weight = nn.Parameter(
             torch.tensor([[[[0, 1, 0], [1, -4, 1], [0, 1, 0]]]], dtype=torch.float32)
             .repeat(1, in_channels, 1, 1),
-            requires_grad=False  # 固定高频算子
+            requires_grad=False  
         )
         self.edge_conv = nn.Conv2d(in_channels + 1, 1, kernel_size=3, padding=1, bias=True)
         self.avg_pool = nn.AdaptiveAvgPool2d(1)
@@ -202,7 +202,7 @@ class Net(nn.Module):
         self.b5_2 = ResBlock(1024, 512, 1024, dilation=2)
         self.bn52 = nn.BatchNorm2d(1024)
         self.b6 = ResBlock_bot(1024, 2048, stride=1, dilation=4, dropout=0.3)
-        self.ISEF =ISEF(2048)
+        self.ESF =ESF(2048)
         self.b7 = ResBlock_bot(2048, 4096, dilation=4, dropout=0.5)
 
         self.bn7 = nn.BatchNorm2d(4096)
@@ -238,7 +238,7 @@ class Net(nn.Module):
         x = self.b5_2(x)                #x:batch*1024*28*28
         b_52 = F.relu(self.bn52(x))
         x, conv5 = self.b6(x, get_x_bn_relu=True)   #x:batch*2048*28*28     conv5:batch*1024*28*28
-        x = self.ISEF(x)
+        x = self.ESF(x)
         x = self.b7(x)                  #x:batch*4096*28*28
         at_map = self.bn7(x)            #batch*4096*28*28
         conv6 = F.relu(self.bn7(x))     #batch*4096*28*28
