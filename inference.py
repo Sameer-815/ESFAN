@@ -42,8 +42,8 @@ def update_test_loader(parent_folder_path):
         pred_folder = os.path.join(subfolder, 'pred')
         if not os.path.exists(pred_folder):
             os.makedirs(pred_folder)
-        img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.jpg')]
-        # img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.png')]
+        # img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.jpg')]
+        img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.png')]
         dataset = MultiPathDataset(img_paths)
         data_loader = DataLoader(dataset, batch_size=1, shuffle=False)
         loaders[subfolder] = data_loader
@@ -73,7 +73,7 @@ class Seg(object):
         bg_mask = np.ones(orig_img.shape[:2]) * (-100.0)
         bg_mask[dst == True] = 100.0
         return bg_mask
-    def seg(self, Is_GM, parent_folder_path):
+    def seg(self, parent_folder_path):
         self.load_the_best_checkpoint()
         self.model.eval()
         loaders = update_test_loader(parent_folder_path)
@@ -85,8 +85,8 @@ class Seg(object):
             if os.path.exists(overlay_folder) and os.listdir(overlay_folder):
                 continue
             img_folder = os.path.join(subfolder, 'img')
-            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
-            img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
+            img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
+            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
             total_images_global += len(img_files)
 
         print(f"Total images to process: {total_images_global}")
@@ -96,8 +96,8 @@ class Seg(object):
             overlay_folder = os.path.join(subfolder, 'overlay')
             if os.path.exists(overlay_folder) and os.listdir(overlay_folder):
                 continue
-            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
-            img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
+            img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
+            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
             os.makedirs(pred_folder, exist_ok=True)
             os.makedirs(overlay_folder, exist_ok=True)
             processed_count_local = 0
@@ -107,14 +107,8 @@ class Seg(object):
                     png_name = os.path.basename(img_paths[0]).split('.')[0]
                     if self.args.cuda:
                         image = image.cuda()
-                    # if Is_GM:
                     output = self.model(image)
-                        # _, y_cls = self.model_stage1.forward_cam(image)
-                        # y_cls = y_cls.cpu().data
-                        # pred_cls = (y_cls > 0.1)
                     pred = output.data.cpu().numpy()
-                    # if Is_GM:
-                    #     pred = pred * (pred_cls.unsqueeze(dim=2).unsqueeze(dim=3).numpy())
                     pred = np.argmax(pred, axis=1)
                     bg_mask = self.gen_bg_mask(image[0].cpu().numpy().transpose(1, 2, 0))
                     bg_mask_bool = (bg_mask == 100)
@@ -123,8 +117,8 @@ class Seg(object):
                     pred[0, bg_mask_resized == 1] = 4
                     pred_img = apply_color_map(pred[0])
                     pred_png = Image.fromarray(pred_img)
-                    savepath = os.path.join(pred_folder, f"{png_name}.jpg")
-                    # savepath = os.path.join(pred_folder, f"{png_name}.png")
+                    # savepath = os.path.join(pred_folder, f"{png_name}.jpg")
+                    savepath = os.path.join(pred_folder, f"{png_name}.png")
                     pred_png.save(savepath)
                     processed_count_local += 1
             processed_count_global += processed_count_local
@@ -144,12 +138,9 @@ class Seg(object):
         print("All images processed.")
 def main():
     parser = argparse.ArgumentParser(description="Seg")
-    parser.add_argument('--backbone', type=str, default='resnet')
-    parser.add_argument('--Is_GM', type=bool, default=True)
     parser.add_argument('--dataset', type=str, default='luad')
     parser.add_argument('--n_class', type=int, default=4)
     parser.add_argument('--no-cuda', action='store_true', default=False)
-    parser.add_argument('--freeze_bn', action='store_true')
     parser.add_argument('--gpu-ids', type=str, default='0')
     parser.add_argument('--sync-bn', type=bool, default=None)
     args = parser.parse_args()
@@ -159,7 +150,7 @@ def main():
     args.sync_bn = args.cuda and len(args.gpu_ids) > 1
     parent_folder_path = r"/example/"
     trainer = Seg(args)
-    trainer.seg(args.Is_GM,  parent_folder_path)
+    trainer.seg(parent_folder_path)
 
 if __name__ == "__main__":
    main()
