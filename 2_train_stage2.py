@@ -41,8 +41,8 @@ class Trainer(object):
         self.model = self.model.cuda()
         tbar = tqdm(self.train_loader)
         num_img_tr = len(self.train_loader)
-        alpha, beta, gamma = self.loss_weight_scheduler.get_weights(epoch)
-        self.criterion.alpha, self.criterion.beta, self.criterion.gamma, self.criterion.tau = alpha, beta, gamma, 0.2
+        alpha, beta, gamma, tau = self.loss_weight_scheduler.get_weights(epoch)
+        self.criterion.alpha, self.criterion.beta, self.criterion.gamma, self.criterion.tau = alpha, beta, gamma, tau
         for i, sample in enumerate(tbar):
             image, target= sample['image'], sample['label']
             image, target= image.cuda(), target.cuda()
@@ -52,8 +52,7 @@ class Trainer(object):
             one = torch.ones((output.shape[0],1,224,224)).cuda()
             output = torch.cat([output, (100 * one * (target == 4).unsqueeze(dim=1))], dim=1)
             target = target.long()
-            loss = F.cross_entropy(output, target)
-            # loss = self.criterion(output, target)
+            loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
             train_loss += loss.item()
@@ -146,7 +145,7 @@ class Trainer(object):
             pred[target == 4] = 4
             visualimg = Image.fromarray(np.squeeze(pred).astype(np.uint8), "P")
             visualimg.putpalette(palette)
-            visualimg.save(os.path.join('./datasets/LUAD-HistoSeg/test/pred/', png_name + '.png'), format='PNG')
+            visualimg.save(os.path.join('./datasets/BCSS-WSSS/test/pred/', png_name + '.png'), format='PNG')
             self.evaluator.add_batch(target, pred)
 
         Acc = self.evaluator.Pixel_Accuracy()
@@ -170,8 +169,8 @@ class Trainer(object):
 
 def main():
     parser = argparse.ArgumentParser(description="WSSS Stage2")
-    parser.add_argument('--dataroot', type=str, default='./datasets/LUAD-HistoSeg/')
-    parser.add_argument('--dataset', type=str, default='luad')
+    parser.add_argument('--dataroot', type=str, default='./datasets/BCSS-WSSS/')
+    parser.add_argument('--dataset', type=str, default='bcss')
     parser.add_argument('--savepath', type=str, default='checkpoints/')
     parser.add_argument('--workers', type=int, default=10, metavar='N')
     parser.add_argument('--n_class', type=int, default=4)
