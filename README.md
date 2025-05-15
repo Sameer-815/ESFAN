@@ -31,9 +31,9 @@ Download the pretained weight of classification stage via Google Cloud Drive ([L
 
 Download the datasets via Google Cloud Drive ([Link)](https://drive.google.com/file/d/1lWAeCp6UN30VRVmqv97kA2sJ1Pp2frhC/view?usp=drive_link)([Link)](https://drive.google.com/file/d/178eSM9xs5jITt5P2kjaswDlJzwlU5gps/view?usp=drive_link)
 
-Download the checkpoints of the first and second stages of LUAD-HistoSeg via Goole Cloud Drive ([Link)]()([Link)]()
+Download the checkpoints of the first and second stages of LUAD-HistoSeg via Goole Cloud Drive ([Link)](https://drive.google.com/file/d/1_dSyEy1JrVEystyjqkoYf6YmWMrxmWNk/view?usp=drive_link)([Link)](https://drive.google.com/file/d/12oLS9aj8oEy1fN_xW8DQZMXkBm4qWsJy/view?usp=drive_link)
 
-Download the checkpoints of the first and second stages of WSSS-BCSS via Goole Cloud Drive ([Link)]()([Link)]()
+Download the checkpoints of the first and second stages of WSSS-BCSS via Goole Cloud Drive ([Link)](https://drive.google.com/file/d/19CWs3rYqrJKMyZvxD90tejp-Ot2Nxogh/view?usp=drive_link)([Link)](https://drive.google.com/file/d/1ZDXJ9tlYKYnwlfyg88h_HKL0DWmi1sJD/view?usp=drive_link)
 
 ## Run each step:
 
