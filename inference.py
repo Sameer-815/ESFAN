@@ -35,24 +35,15 @@ class MultiPathDataset(Dataset):
         composed_transforms = transforms.Compose([tr.Normalize(), tr.ToTensor()])
         return composed_transforms(sample), self.img_files[index]
 def update_test_loader(parent_folder_path):
-    loaders = {}
-    subfolders = [f.path for f in os.scandir(parent_folder_path) if f.is_dir()]
-    for subfolder in subfolders:
-        img_folder = os.path.join(subfolder, 'img')
-        pred_folder = os.path.join(subfolder, 'pred')
-        if not os.path.exists(pred_folder):
-            os.makedirs(pred_folder)
-        # img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.jpg')]
-        img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.png')]
-        dataset = MultiPathDataset(img_paths)
-        data_loader = DataLoader(dataset, batch_size=1, shuffle=False)
-        loaders[subfolder] = data_loader
-    return loaders
-def overlay_images(img_path, pred_path, output_path):
-    img = Image.open(img_path).convert("RGB")
-    pred = Image.open(pred_path).convert("RGB")
-    overlay = Image.blend(img, pred, alpha=0.5)
-    overlay.save(output_path)
+    img_folder = os.path.join(parent_folder_path, 'img')
+    pred_folder = os.path.join(parent_folder_path, 'pred')
+    if not os.path.exists(pred_folder):
+        os.makedirs(pred_folder)
+    img_paths = [os.path.join(img_folder, img) for img in os.listdir(img_folder) if img.endswith('.png')]
+    dataset = MultiPathDataset(img_paths)
+    data_loader = DataLoader(dataset, batch_size=1, shuffle=False)
+    return data_loader
+
 class Seg(object):
     def __init__(self, args):
         self.args = args
@@ -76,66 +67,50 @@ class Seg(object):
     def seg(self, parent_folder_path):
         self.load_the_best_checkpoint()
         self.model.eval()
-        loaders = update_test_loader(parent_folder_path)
-        total_images_global, processed_count_global = 0, 0
+        test_loader = update_test_loader(parent_folder_path)
+        img_folder = os.path.join(parent_folder_path, 'img')
+        pred_folder = os.path.join(parent_folder_path, 'pred')
+        overlay_folder = os.path.join(parent_folder_path, 'overlay')
+        os.makedirs(pred_folder, exist_ok=True)
+        os.makedirs(overlay_folder, exist_ok=True)
+        img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
+        total_images_global = len(img_files)
+        processed_count_global = 0
         start_time_global = time.time()
-
-        for subfolder in loaders.keys():
-            overlay_folder = os.path.join(subfolder, 'overlay')
-            if os.path.exists(overlay_folder) and os.listdir(overlay_folder):
-                continue
-            img_folder = os.path.join(subfolder, 'img')
-            img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
-            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
-            total_images_global += len(img_files)
-
         print(f"Total images to process: {total_images_global}")
-        for subfolder, test_loader in loaders.items():
-            img_folder = os.path.join(subfolder, 'img')
-            pred_folder = os.path.join(subfolder, 'pred')
-            overlay_folder = os.path.join(subfolder, 'overlay')
-            if os.path.exists(overlay_folder) and os.listdir(overlay_folder):
-                continue
-            img_files = [f for f in os.listdir(img_folder) if f.endswith('.png')]
-            # img_files = [f for f in os.listdir(img_folder) if f.endswith('.jpg')]
-            os.makedirs(pred_folder, exist_ok=True)
-            os.makedirs(overlay_folder, exist_ok=True)
-            processed_count_local = 0
-            with torch.no_grad():
-                for i, (sample, img_paths) in enumerate(tqdm(test_loader, desc=f'Processing {subfolder}')):
-                    image= sample['image']
-                    png_name = os.path.basename(img_paths[0]).split('.')[0]
-                    if self.args.cuda:
-                        image = image.cuda()
-                    output = self.model(image)
-                    pred = output.data.cpu().numpy()
-                    pred = np.argmax(pred, axis=1)
-                    bg_mask = self.gen_bg_mask(image[0].cpu().numpy().transpose(1, 2, 0))
-                    bg_mask_bool = (bg_mask == 100)
-                    bg_mask_resized = cv2.resize(bg_mask_bool.astype(np.uint8), pred.shape[1:],
-                                                 interpolation=cv2.INTER_NEAREST)
-                    pred[0, bg_mask_resized == 1] = 4
-                    pred_img = apply_color_map(pred[0])
-                    pred_png = Image.fromarray(pred_img)
-                    # savepath = os.path.join(pred_folder, f"{png_name}.jpg")
-                    savepath = os.path.join(pred_folder, f"{png_name}.png")
-                    pred_png.save(savepath)
-                    processed_count_local += 1
-            processed_count_global += processed_count_local
-            elapsed_time_global = time.time() - start_time_global
-            images_per_second = processed_count_global / elapsed_time_global
-            remaining_images = total_images_global - processed_count_global
-            estimated_remaining_time = remaining_images / images_per_second
-            print(f"Processed {processed_count_global}/{total_images_global} images.")
-            print(f"Estimated remaining time: {estimated_remaining_time / 60:.2f} minutes.")
-            for img_file in img_files:
-                img_path = os.path.join(img_folder, img_file)
-                pred_path = os.path.join(pred_folder, img_file)
-                overlay_savepath = os.path.join(overlay_folder, img_file)
-                os.makedirs(overlay_folder, exist_ok=True)
-                overlay_images(img_path, pred_path, overlay_savepath)
-            processed_count_global += processed_count_local
+        with torch.no_grad():
+            for i, (sample, img_paths) in enumerate(tqdm(test_loader, desc=f'Processing {parent_folder_path}')):
+                image = sample['image']
+                png_name = os.path.basename(img_paths[0]).split('.')[0]
+                if self.args.cuda:
+                    image = image.cuda()
+                output = self.model(image)
+                pred = output.data.cpu().numpy()
+                pred = np.argmax(pred, axis=1)
+                bg_mask = self.gen_bg_mask(image[0].cpu().numpy().transpose(1, 2, 0))
+                bg_mask_bool = (bg_mask == 100)
+                bg_mask_resized = cv2.resize(bg_mask_bool.astype(np.uint8), pred.shape[1:], interpolation=cv2.INTER_NEAREST)
+                pred[0, bg_mask_resized == 1] = 4
+                pred_img = apply_color_map(pred[0])
+                pred_png = Image.fromarray(pred_img)
+                savepath = os.path.join(pred_folder, f"{png_name}.png")
+                pred_png.save(savepath)
+                processed_count_global += 1
+        elapsed_time_global = time.time() - start_time_global
+        images_per_second = processed_count_global / elapsed_time_global
+        print(f"Processed {processed_count_global}/{total_images_global} images.")
+        print(f"Estimated remaining time: 0.00 minutes.")
+        for img_file in img_files:
+            img_path = os.path.join(img_folder, img_file)
+            pred_path = os.path.join(pred_folder, img_file)
+            overlay_savepath = os.path.join(overlay_folder, img_file)
+            overlay_images(img_path, pred_path, overlay_savepath)
         print("All images processed.")
+def overlay_images(img_path, pred_path, output_path):
+    img = Image.open(img_path).convert("RGB")
+    pred = Image.open(pred_path).convert("RGB")
+    overlay = Image.blend(img, pred, alpha=0.5)
+    overlay.save(output_path)
 def main():
     parser = argparse.ArgumentParser(description="Seg")
     parser.add_argument('--dataset', type=str, default='luad')
@@ -148,7 +123,7 @@ def main():
     if args.cuda:
         args.gpu_ids = [int(s) for s in args.gpu_ids.split(',')]
     args.sync_bn = args.cuda and len(args.gpu_ids) > 1
-    parent_folder_path = r"/example/"
+    parent_folder_path = r"./datasets/LUAD-HistoSeg/train"
     trainer = Seg(args)
     trainer.seg(parent_folder_path)
 
