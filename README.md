@@ -53,7 +53,7 @@ python 1_train_stage1.py
 python 2_train_stage2.py
 ```
 
-3、Inference with the weights obtained from the segmentation stage：
+3、Inference of unlabeled data using the checkpoint obtained in the segmentation stage:
 
 ```python
 python inference.py
