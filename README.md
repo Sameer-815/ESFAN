@@ -12,23 +12,23 @@ Existing studies on weakly supervised pathological tissue segmentation predomina
 
 ## Dataset
 
-```
+<pre>
 ESFAN/
+├── datasets
+│   ├── BCSS-WSSS/
+│   │   ├── train/img/
+│   │   ├── val/img/
+│   │   │   └── mask/
+│   │   └── test/img/
+│   │       └── mask/
+│   └── LUAD-HistoSeg/
+│       ├── train/img/
+│       ├── val/img/
+│       │   └── mask/
+│       └── test/img/
+│           └── mask/
+</pre>
 
-|_ datasets
-|     |_ BCSS-WSSS/
-|         |_ train/img/
-|         |_ val/img/
-|          |     |/mask/
-|         |_ test/img/
-|          |     |/mask/
-|     |_ LUAD-HistoSeg/
-|         |_ train/img/
-|         |_ val/img/
-|          |     |/mask/
-|         |_ test/img/
-|          |     |/mask/
-```
 
 ## Pretrained weights , datasets and checkpoints
 
