@@ -1,4 +1,8 @@
-
+# Edge-semantic Synergy Fusion and Adaptive Noise-aware for Weakly Supervised Pathological Tissue Segmentation
+<details>
+<summary>Read full abstract.</summary>
+Existing studies on weakly supervised pathological tissue segmentation predominantly rely on class activation maps (CAMs) to generate pixel-level pseudo-masks from image-level labels. However, CAMs tend to emphasize only the most discriminative regions, resulting in boundary noise that undermines the quality of pseudo-masks and degrades segmentation performance. To address these challenges, we propose a novel weakly supervised pathological tissue segmentation framework: Edge-semantic Synergy Fusion and Adaptive Noise-aware (ESFAN) mechanism. In the classification phase, the Edge-semantic Synergy Fusion (ESF) improves the quality of pseudo-masks by incorporating four synergistic components. The hybrid edge-aware transformer refines boundaries, while the pyramid context integrator captures multi-scale context. The context channel amplifier fine-tunes semantic features, and the adaptive fusion gating balances feature map contributions using learnable spatial weights. In the segmentation phase, we propose an Adaptive Noise-aware Mechanism (ANM) that incorporates adaptive weighted cross-entropy, uncertainty regularization, and spatial smoothing constraints to mitigate noise in pseudo-masks and enhance segmentation robustness. Extensive experiments on the LUAD-HistoSeg and BCSS datasets demonstrate that ESFAN significantly outperforms state-of-the-art methods.
+</details>
 # Framework
 
 ![framework](framework.png)
