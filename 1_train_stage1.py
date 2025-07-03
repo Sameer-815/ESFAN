@@ -144,7 +144,7 @@ if __name__ == '__main__':
     parser.add_argument("--wt_dec", default=5e-4, type=float)
     parser.add_argument("--n_class", default=4, type=int)
     parser.add_argument("--weights", default='init_weights/ilsvrc-cls_rna-a1_cls1000_ep-0001.params', type=str)
-    parser.add_argument("--trainroot", default='./datasets/BCSS-WSSS/train/', type=str)
+    parser.add_argument("--trainroot", default='./datasets/BCSS-WSSS/train/img/', type=str)
     parser.add_argument("--testroot", default='./datasets/BCSS-WSSS/test/', type=str)
     parser.add_argument("--save_folder", default='checkpoints', type=str)
     parser.add_argument("--dataset", default='bcss', type=str)
